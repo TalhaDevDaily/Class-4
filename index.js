@@ -10,14 +10,17 @@ mongoose
   .connect(
     'mongodb+srv://TalhaDevDaily:%40R0146306c@nodejs-sandbox.zmstzzn.mongodb.net/todoDB',
   )
-  .then(() => console.log(`Server has established connection with Database`))
-  .catch(err => console.log(`Database connection error: ${err}`));
+  .then(() => console.log(`Connection with Database has been established!`))
+  .catch(err => console.log(`Failed to connect to Database: ${err}`));
 
 // Create ToDo
-app.post('/tasks/create', async (req, res) => {
+app.post('/tasks/create', (req, res) => {
   const { task, priority } = req.body;
 
-  if (!task) return res.status(400).send(`The task you are creating is empty!`);
+  if (!task)
+    return res
+      .status(200)
+      .send(`You need a task to add one in the first place!`);
 
   const create = new Task({
     task: task,
@@ -29,9 +32,7 @@ app.post('/tasks/create', async (req, res) => {
   res.status(200).send(`Task added!`);
 });
 
-////////////////////////////////////////////////
-
-// Middleware for Authorization
+// Middleware
 function middlewareBlockage(req, res, next) {
   if (req.headers.authorization !== 'getintoalltasks')
     return res.status(401).send(`Unauthorized access: Authentication failed`);
@@ -41,11 +42,9 @@ function middlewareBlockage(req, res, next) {
 // Read ToDo
 app.get('/tasks/all', middlewareBlockage, async (req, res) => {
   const readAll = await Task.find({});
-  res.status(200).send(`You got ${readAll.length} left to do!
+  res.status(200).send(`You have ${readAll.length} left to do!
     ${readAll}`);
 });
-
-/////////////////////////////////////////////////
 
 // Delete ToDo
 app.delete('/tasks/remove/:id', async (req, res) => {
@@ -53,7 +52,7 @@ app.delete('/tasks/remove/:id', async (req, res) => {
 
   const remove = await Task.findByIdAndDelete(id);
 
-  res.status(200).send(`${remove.task} is done!`);
+  res.status(200).send(`${remove.task} has been completed! 🎊`);
 });
 
 // Update ToDo
@@ -61,10 +60,9 @@ app.post('/tasks/change/:id', async (req, res) => {
   const { id } = req.params;
 
   const change = await Task.findByIdAndUpdate({ _id: id }, req.body, {
-    new: true,
+    returnDocument: 'after',
   });
-
-  res.status(200).send(`Task changed!
+  res.status(200).send(`Task changed to:
     ${change}`);
 });
 
