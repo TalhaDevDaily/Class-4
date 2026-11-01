@@ -5,29 +5,26 @@
 const express = require('express');
 const app = express();
 
-// installing mongoose
 const mongoose = require('mongoose');
 const Task = require('./models/todoModel');
 
 app.use(express.json());
 
-// mongodb+srv://TalhaDevDaily:@R0146306c@nodejs-sandbox.zmstzzn.mongodb.net/todoDB
-// @ - %40
-
 mongoose
 .connect(
 'mongodb+srv://TalhaDevDaily:%40R0146306c@nodejs-sandbox.zmstzzn.mongodb.net/todoDB',
 )
-.then(() => console.log('Connection established with Database!'))
-.catch(err => console.log(`The server ran into an error: ${err}`));
+.then(() =>
+console.log(`Server established connection with Database successfully!`),
+)
+.catch(err => console.log(`Unable to link to server: ${err}`));
 
-// Create ToDo Tasks
-app.post('/task/create', (req, res) => {
+// Create ToDo
+app.post('/tasks/create', (req, res) => {
 const { task, priority } = req.body;
 
-if (!task) {
-return res.status(401).send(`Can't add empty Task`);
-}
+if (!task)
+return res.status(400).send(`A task is required for it to be a task!`);
 
 const todo = new Task({
 task: task,
@@ -36,47 +33,43 @@ priority: priority,
 
 todo.save();
 
-res.send(todo);
-
-// res.status(200).send(`Task added!`);
+res.status(200).send(`Task Added!: ${todo}`);
 });
 
-// Read Todo Tasks
-// Middleware gives the authorization for to access certain data by authentication
-function authorizationMiddleware(req, res, next) {
+// Creating Middleware for reading all data
+function middlewareBlockage(req, res, next) {
 // console.log(req.headers.authorization);
-if (req.headers.authorization === 'getintoalltasks') next();
-else
-res
-.status(401)
-.send(
-`Unauthorized Access: You do not have the permission to access the Tasks`,
-);
+
+if (req.headers.authorization !== 'getintoalltasks')
+return res.status(401).send(`Unauthorized access: Authentication failed`);
+next();
 }
 
-app.get('/tasks/all', authorizationMiddleware, async (req, res) => {
-const data = await Task.find({});
+// Read ToDo
+app.get('/tasks/all', middlewareBlockage, async (req, res) => {
+const readData = await Task.find({});
 
-res.send(data);
+res.status(200).send(`You have ${readData.length} to go!
+    ${readData}`);
 });
 
-// Delete ToDo Tasks
+// Deleting Todo
 app.delete('/tasks/remove/:id', async (req, res) => {
 const { id } = req.params;
 
-await Task.findByIdAndDelete(id);
+const remove = await Task.findByIdAndDelete(id);
 
-res.send(`Task Removed!`);
+res.status(200).send(`"${remove.task}" task has been removed!`);
 });
 
-// Update ToDo Tasks
+// Updating ToDo
 app.post('/tasks/change/:id', async (req, res) => {
 const { id } = req.params;
-const update = await Task.findByIdAndUpdate({ \_id: id }, req.body, {
+
+const change = await Task.findByIdAndUpdate({ \_id: id }, req.body, {
 new: true,
 });
-res.send(`Task has been updated to:
-    ${update}`);
+res.status(200).send(`Task changed to: ${change}`);
 });
 
 app.listen(8000, () => console.log(`Server is running`));
@@ -96,9 +89,10 @@ task: {
 type: String,
 required: true,
 },
+
 priority: {
 type: String,
-enum: ['high', 'moderate', 'low', 'none'], // enumeration
+enum: ['none', 'low', 'moderate', 'high'],
 default: 'none',
 },
 });

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-// const
 const todoSchema = new Schema({
   task: {
     type: String,

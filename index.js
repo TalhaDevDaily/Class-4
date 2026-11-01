@@ -49,4 +49,23 @@ app.get('/tasks/all', middlewareBlockage, async (req, res) => {
     ${readData}`);
 });
 
+// Deleting Todo
+app.delete('/tasks/remove/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const remove = await Task.findByIdAndDelete(id);
+
+  res.status(200).send(`"${remove.task}" task has been removed!`);
+});
+
+// Updating ToDo
+app.post('/tasks/change/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const change = await Task.findByIdAndUpdate({ _id: id }, req.body, {
+    new: true,
+  });
+  res.status(200).send(`Task changed to: ${change}`);
+});
+
 app.listen(8000, () => console.log(`Server is running`));
