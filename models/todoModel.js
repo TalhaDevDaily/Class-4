@@ -6,7 +6,6 @@ const todoSchema = new Schema({
     type: String,
     required: true,
   },
-
   priority: {
     type: String,
     enum: ['none', 'low', 'moderate', 'high'],
