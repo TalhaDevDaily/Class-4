@@ -15,6 +15,7 @@ mongoose
   )
   .catch(err => console.log(`Unable to link to server: ${err}`));
 
+// Create ToDo
 app.post('/tasks/create', (req, res) => {
   const { task, priority } = req.body;
 
@@ -26,7 +27,26 @@ app.post('/tasks/create', (req, res) => {
     priority: priority,
   });
 
-  res.status(200).send(`Task Added!: ${req.body.task}`);
+  todo.save();
+
+  res.status(200).send(`Task Added!: ${todo}`);
+});
+
+// Creating Middleware for reading all data
+function middlewareBlockage(req, res, next) {
+  // console.log(req.headers.authorization);
+
+  if (req.headers.authorization !== 'getintoalltasks')
+    return res.status(401).send(`Unauthorized access: Authentication failed`);
+  next();
+}
+
+// Read ToDo
+app.get('/tasks/all', middlewareBlockage, async (req, res) => {
+  const readData = await Task.find({});
+
+  res.status(200).send(`You have ${readData.length} to go!
+    ${readData}`);
 });
 
 app.listen(8000, () => console.log(`Server is running`));
